@@ -1,3 +1,7 @@
-﻿// See https://aka.ms/new-console-template for more information
+using PriceMonitor;
 
-Console.WriteLine("Hello, World!");
+var builder = Host.CreateApplicationBuilder(args);
+builder.Services.AddHostedService<Worker>();
+
+var host = builder.Build();
+host.Run();
