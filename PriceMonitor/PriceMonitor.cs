@@ -28,7 +28,11 @@ public class PriceMonitor(
         {
             try
             {
-                await CheckProductPriceAsync(stoppingToken);
+                var hour = DateTime.Now.Hour;
+                if (hour is >= 7 and <= 24)
+                {
+                    await CheckProductPriceAsync(stoppingToken);
+                }
             }
             catch (Exception ex)
             {
