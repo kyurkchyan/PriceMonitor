@@ -15,6 +15,8 @@ builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings"));
 builder.Services.Configure<ScrapeApiSettings>(
     builder.Configuration.GetSection("ScrapeApiSettings"));
+builder.Services.Configure<TelegramSettings>(
+    builder.Configuration.GetSection("TelegramSettings"));
 
 // Register HTTP client with enhanced configuration for Amazon
 builder.Services.AddHttpClient<IAmazonPriceScraper, AmazonPriceScraper>((sp, client) =>
@@ -30,8 +32,15 @@ builder.Services.AddHttpClient<IAmazonPriceScraper, AmazonPriceScraper>((sp, cli
     .AddPolicyHandler(GetRetryPolicy())
     .AddPolicyHandler(GetCircuitBreakerPolicy());
 
+// Add HttpClient for Telegram
+builder.Services.AddHttpClient<ITelegramService, TelegramService>()
+    .AddPolicyHandler(GetRetryPolicy())
+    .AddPolicyHandler(GetCircuitBreakerPolicy());
+
 // Register services
 builder.Services.AddSingleton<IEmailService, EmailService>();
+builder.Services.AddSingleton<ITelegramService, TelegramService>();
+builder.Services.AddSingleton<INotificationService, NotificationService>();
 builder.Services.AddHostedService<PriceMonitor.PriceMonitor>();
 
 var host = builder.Build();

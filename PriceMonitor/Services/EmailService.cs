@@ -10,7 +10,8 @@ public class EmailService(ILogger<EmailService> logger, IOptions<EmailSettings> 
 {
     private readonly EmailSettings _emailSettings = emailSettings.Value;
 
-    public async Task SendPriceAlertAsync(string productName, decimal currentPrice, decimal thresholdPrice, string productUrl)
+    public async Task SendPriceAlertAsync(string productName, decimal currentPrice, decimal thresholdPrice,
+        string productUrl)
     {
         try
         {

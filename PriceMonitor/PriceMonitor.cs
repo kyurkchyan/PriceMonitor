@@ -7,15 +7,15 @@ namespace PriceMonitor;
 public class PriceMonitor(
     ILogger<PriceMonitor> logger,
     IAmazonPriceScraper amazonPriceScraper,
-    IEmailService emailService,
+    INotificationService notificationService,
     IOptions<PriceMonitorSettings> settings)
     : BackgroundService
 {
     private readonly PriceMonitorSettings _settings = settings.Value;
+    private bool _firstRun = true;
 
     // Track the last price to avoid sending multiple notifications for the same price change
     private decimal _lastNotifiedPrice = decimal.MaxValue;
-    private bool _firstRun = true;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -23,16 +23,14 @@ public class PriceMonitor(
         logger.LogInformation("Monitoring product : {Url}", _settings.Asin);
         logger.LogInformation("Price threshold set to: ${Threshold}", _settings.PriceThreshold);
         logger.LogInformation("Check interval set to: {Interval} minutes", _settings.CheckIntervalMinutes);
+        logger.LogInformation("Notification methods: {Methods}", _settings.NotificationMethods);
 
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
                 var hour = DateTime.Now.Hour;
-                if (hour is >= 7 and <= 24)
-                {
-                    await CheckProductPriceAsync(stoppingToken);
-                }
+                if (hour is >= 7 and <= 24) await CheckProductPriceAsync(stoppingToken);
             }
             catch (Exception ex)
             {
@@ -59,7 +57,7 @@ public class PriceMonitor(
                 logger.LogInformation("Price drop detected! Current: ${CurrentPrice}, Threshold: ${ThresholdPrice}",
                     currentPrice, _settings.PriceThreshold);
 
-                await emailService.SendPriceAlertAsync(
+                await notificationService.SendPriceAlertAsync(
                     productName,
                     currentPrice,
                     _settings.PriceThreshold,
